@@ -15,6 +15,12 @@ Chrome Manifest V3 new-tab extension.
 - Dark/light mode
 - Settings page
 
+## Screenshots
+
+The dashboard screenshot below shows the live Huawei LTE signal-quality metrics and bars in the Router 1 card.
+
+![CommandTab dashboard with live Huawei LTE signal quality](assets/screenshots/commandtab-dashboard.png)
+
 ## Install in Chrome
 1. Unzip this project.
 2. Open `chrome://extensions`.
@@ -93,3 +99,4 @@ Signal and traffic are refreshed every 2 seconds. Operator/PLMN is requested onc
 ## Router 1 session bootstrap
 
 On each new-tab load, the extension opens the Huawei home endpoint, reads the current `SessionID` cookie, stores its value and timestamp locally, and uses browser credentials for Router 1 API requests. No SessionID is hardcoded or entered in Settings. If the cookie cannot be read, the dashboard reports that the session is unavailable and Router 1 requests may fail.
+# commandtab-chrome-extension
