@@ -75,7 +75,7 @@ Many local routers use a self-signed HTTPS certificate. Visit `https://192.168.8
 
 Router 1 now uses one controlled polling loop. Signal and traffic requests run immediately and then again 2 seconds after the previous cycle completes. Requests use the exact Huawei API paths without cache-busting query parameters; cache control is handled through the request cache settings and headers. PLMN/operator is fetched once per new-tab session.
 
-The Router 1 card includes a "Last updated" timestamp and expandable raw signal/traffic responses to make live polling easy to verify.
+The Router 1 card includes a compact update time and expandable raw signal/traffic responses to make live polling easy to verify.
 
 The project folder remains `commandtab-chrome-extension`; version numbers are not added to the folder name.
 

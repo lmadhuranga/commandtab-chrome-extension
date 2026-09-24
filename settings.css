@@ -1,3 +1,4 @@
 body{margin:0;background:#0b1020;color:#eef2ff;font:15px system-ui}main{max-width:850px;margin:40px auto;padding:0 24px}h1{font-size:32px}section,pre{background:#141c30;border:1px solid #26324d;border-radius:14px;padding:20px;margin:18px 0}label{display:block;margin:12px 0}input{display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:11px;border-radius:8px;border:1px solid #34425f;background:#0b1020;color:#fff}button{padding:11px 18px;border:0;border-radius:9px;background:#2774e6;color:#fff;cursor:pointer}.actions{display:flex;gap:15px;align-items:center}.note{color:#aab4c8}code{color:#8ee6b1}
 .session-field small{display:block;margin-top:6px;opacity:.7;line-height:1.4}
 .session-field input{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.field-note{display:block;margin-top:6px;color:#aab4c8;line-height:1.4}

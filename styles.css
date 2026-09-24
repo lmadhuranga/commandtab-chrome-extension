@@ -4,6 +4,10 @@
 
 .router-live-meta{border-top:1px solid #ffffff17;margin-top:12px;padding-top:10px;color:#aeb6c6;font-size:11px;display:grid;gap:5px}
 .router-live-meta b{color:#fff}.router-live-meta details{margin-top:2px}.router-live-meta summary{cursor:pointer}.router-live-meta code{display:inline-block;max-width:100%;overflow-wrap:anywhere;color:#8ee6b1;margin-top:4px}
+.router2-diagnostics-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+.router2-diagnostics-actions button{padding:5px 9px;border-radius:8px;font-size:11px}
+.router2-diagnostics{max-height:220px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:#0000001f;border:1px solid #ffffff10;border-radius:8px;padding:8px;margin:7px 0 0;color:#c6f3d7;font:10px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+body.light .router2-diagnostics{background:#1720330d;color:#17643a}
 
 .signal-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
 .signal-metrics span{background:#ffffff0a;border:1px solid #ffffff10;border-radius:10px;padding:8px;text-align:center}
@@ -20,3 +24,124 @@
 .signal.bars.quality-weak span.active{color:#ff9f43}
 .signal.bars.quality-fair span.active{color:#f6c744}
 .signal.bars.quality-good span.active,.signal.bars.quality-excellent span.active{color:#27df7a}
+
+/* Router 2 uses a denser hierarchy so live values stay grouped at dashboard widths. */
+.router-two{min-width:0}
+.router-two .card-head{gap:10px}
+.router-two .card-head h2{min-width:0;overflow-wrap:anywhere}
+.router-two .card-head h2 span{overflow-wrap:anywhere}
+.router-two .card-head>span{flex:0 0 auto;white-space:nowrap}
+.router2-live-summary{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:10px;margin-top:14px}
+.router2-signal-panel,.router2-traffic-panel,.router2-radio-card{min-width:0;background:#ffffff0a;border:1px solid #ffffff10;border-radius:12px;padding:11px}
+.router2-section-label{color:#aeb6c6;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.router2-signal-row{display:flex;align-items:flex-end;gap:10px;min-width:0;margin-top:10px}
+.router-two .signal.bars{display:inline-flex;align-items:flex-end;flex:0 0 auto;height:30px;font-size:30px;line-height:0}
+.router-two .signal.bars span{display:block;flex:0 0 5px;width:5px;margin:0;font-size:0;line-height:1;background:currentColor;border-radius:1px 1px 0 0}
+.router-two .signal.bars span:nth-child(1){height:8px}
+.router-two .signal.bars span:nth-child(2){height:14px}
+.router-two .signal.bars span:nth-child(3){height:22px}
+.router-two .signal.bars span:nth-child(4){height:30px}
+.router[data-router="1"] .signal.bars{display:inline-flex;align-items:flex-end;flex:0 0 auto;height:30px;font-size:30px;line-height:0}
+.router[data-router="1"] .signal.bars span{display:block;flex:0 0 5px;width:5px;margin:0;font-size:0;line-height:1;background:currentColor;border-radius:1px 1px 0 0}
+.router[data-router="1"] .signal.bars span:nth-child(1){height:8px}
+.router[data-router="1"] .signal.bars span:nth-child(2){height:14px}
+.router[data-router="1"] .signal.bars span:nth-child(3){height:22px}
+.router[data-router="1"] .signal.bars span:nth-child(4){height:30px}
+.router2-traffic-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+.router2-traffic-metric{display:flex;align-items:center;gap:7px;min-width:0;padding:7px 6px;border-radius:9px;background:#ffffff08}
+.router2-traffic-arrow{flex:0 0 auto;color:#2eea83;font-size:20px;line-height:1}
+.router2-traffic-copy{display:grid;min-width:0;gap:2px}
+.router2-traffic-copy small{color:#8993a8;font-size:9px;line-height:1.1;text-transform:uppercase;letter-spacing:.06em}
+.router2-traffic-copy b{min-width:0;color:#fff;font-size:12px;line-height:1.2;overflow-wrap:anywhere}
+.router2-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+.router2-stat-card{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:64px;padding:9px 6px;text-align:center;background:#ffffff08;border:1px solid #ffffff10;border-radius:11px}
+.router2-stat-card span{color:#aeb6c6;font-size:10px;line-height:1.2;overflow-wrap:anywhere}
+.router2-stat-card b{max-width:100%;margin-top:5px;color:#fff;font-size:14px;line-height:1.2;overflow-wrap:anywhere}
+.router-two .router-live-meta{display:block;margin-top:10px;padding-top:10px}
+.router2-meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.router2-meta-item{display:grid;min-width:0;gap:3px;padding:8px 9px;background:#ffffff08;border-radius:10px}
+.router2-meta-item>span{color:#8993a8;font-size:9px;line-height:1.1;text-transform:uppercase;letter-spacing:.06em}
+.router2-meta-item>b{min-width:0;color:#fff;font-size:11px;line-height:1.25;overflow-wrap:anywhere}
+.router2-meta-item small{min-width:0;color:#8993a8;font-size:9px;overflow-wrap:anywhere}
+.router2-meta-item small b{color:#cfd6e3;font-size:9px}
+.router2-radio-card{margin-top:8px}
+.router-two .signal-metrics{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:8px}
+.router-two .signal-metrics span{min-width:0;padding:7px 5px}
+.router-two .signal-metrics b{min-width:0;overflow-wrap:anywhere}
+.router2-raw-stack{display:grid;gap:6px;margin-top:8px}
+.router2-raw-stack details{min-width:0;padding:7px 9px;background:#ffffff05;border:1px solid #ffffff0c;border-radius:9px}
+.router2-raw-stack summary{color:#c6cedb;font-size:11px}
+.router2-raw-stack code{display:block;max-width:100%;margin-top:6px;overflow-wrap:anywhere}
+
+@media(max-width:1400px){.router2-overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){
+ .router2-live-summary{grid-template-columns:1fr}
+ .router2-meta-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:420px){
+ .router2-overview,.router2-meta-grid{grid-template-columns:1fr}
+ .router2-traffic-grid{grid-template-columns:1fr}
+}
+
+/* Both router cards keep their live signal and traffic controls in the same compact hierarchy. */
+.router2-signal-rsrp,.router1-signal-rsrp{display:grid;min-width:0;gap:2px;line-height:1.2}
+.router2-signal-rsrp b,.router1-signal-rsrp b{max-width:100%;color:#fff;font-size:13px;overflow-wrap:anywhere}
+.router2-signal-rsrp small,.router1-signal-rsrp small{color:#8993a8;font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+.router2-cell-id{display:flex;align-items:baseline;justify-content:space-between;gap:10px;min-width:0;margin-top:8px;padding:8px 9px;background:#ffffff08;border-radius:9px}
+.router2-cell-id b{min-width:0;color:#fff;font-size:13px;overflow-wrap:anywhere}
+
+.router-one{min-width:0}
+.router-one .card-head{gap:10px}
+.router-one .card-head h2{min-width:0;overflow-wrap:anywhere}
+.router-one .card-head h2 span{overflow-wrap:anywhere}
+.router-one .card-head>span{flex:0 0 auto;white-space:nowrap}
+.router1-live-summary{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:10px;margin-top:14px}
+.router1-signal-panel,.router1-traffic-panel,.router1-radio-card{min-width:0;background:#ffffff0a;border:1px solid #ffffff10;border-radius:12px;padding:11px}
+.router1-section-label{color:#aeb6c6;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.router1-signal-row{display:flex;align-items:flex-end;gap:10px;min-width:0;margin-top:10px}
+.router-one .signal.bars{display:inline-flex;align-items:flex-end;flex:0 0 auto;height:30px;font-size:30px;line-height:0}
+.router-one .signal.bars span{display:block;flex:0 0 5px;width:5px;margin:0;font-size:0;line-height:1;background:currentColor;border-radius:1px 1px 0 0}
+.router-one .signal.bars span:nth-child(1){height:8px}
+.router-one .signal.bars span:nth-child(2){height:14px}
+.router-one .signal.bars span:nth-child(3){height:22px}
+.router-one .signal.bars span:nth-child(4){height:30px}
+.router1-traffic-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+.router1-traffic-metric{display:flex;align-items:center;gap:7px;min-width:0;padding:7px 6px;border-radius:9px;background:#ffffff08}
+.router1-traffic-arrow{flex:0 0 auto;color:#2eea83;font-size:20px;line-height:1}
+.router1-traffic-copy{display:grid;min-width:0;gap:2px}
+.router1-traffic-copy small{color:#8993a8;font-size:9px;line-height:1.1;text-transform:uppercase;letter-spacing:.06em}
+.router1-traffic-copy b{min-width:0;color:#fff;font-size:12px;line-height:1.2;overflow-wrap:anywhere}
+.router1-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+.router1-stat-card{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:64px;padding:9px 6px;text-align:center;background:#ffffff08;border:1px solid #ffffff10;border-radius:11px}
+.router1-stat-card span{color:#aeb6c6;font-size:10px;line-height:1.2;overflow-wrap:anywhere}
+.router1-stat-card b{max-width:100%;margin-top:5px;color:#fff;font-size:14px;line-height:1.2;overflow-wrap:anywhere}
+.router-one .router-live-meta{display:block;margin-top:10px;padding-top:10px}
+.router1-meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.router1-meta-item{display:grid;min-width:0;gap:3px;padding:8px 9px;background:#ffffff08;border-radius:10px}
+.router1-meta-item>span{color:#8993a8;font-size:9px;line-height:1.1;text-transform:uppercase;letter-spacing:.06em}
+.router1-meta-item>b{min-width:0;color:#fff;font-size:11px;line-height:1.25;overflow-wrap:anywhere}
+.router1-meta-item small{min-width:0;color:#8993a8;font-size:9px;overflow-wrap:anywhere}
+.router1-meta-item small b{color:#cfd6e3;font-size:9px}
+.router1-radio-card{margin-top:8px}
+.router1-metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+.router1-metric-grid span{min-width:0;background:#ffffff0a;border:1px solid #ffffff10;border-radius:10px;padding:7px 5px;text-align:center}
+.router1-metric-grid b{display:block;min-width:0;color:#fff;font-size:13px;overflow-wrap:anywhere}
+.router1-metric-grid small{display:block;margin-top:3px;color:#8993a8;font-size:9px;letter-spacing:.08em}
+.router1-cell-grid{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;color:#9ca6b8}
+.router1-cell-grid span{min-width:0;overflow-wrap:anywhere}
+.router1-cell-grid b{color:#fff}
+.router1-raw-stack{display:grid;gap:6px;margin-top:8px}
+.router1-raw-stack details{min-width:0;padding:7px 9px;background:#ffffff05;border:1px solid #ffffff0c;border-radius:9px}
+.router1-raw-stack summary{color:#c6cedb;font-size:11px}
+.router1-raw-stack code{display:block;max-width:100%;margin-top:6px;overflow-wrap:anywhere}
+
+@media(max-width:1400px){.router1-overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){
+ .router1-live-summary{grid-template-columns:1fr}
+ .router1-meta-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:420px){
+ .router1-overview,.router1-meta-grid{grid-template-columns:1fr}
+ .router1-traffic-grid{grid-template-columns:1fr}
+ .router1-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}

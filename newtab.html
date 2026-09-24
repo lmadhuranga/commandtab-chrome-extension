@@ -20,34 +20,111 @@
 <form id="searchForm" class="search glass"><span>⌕</span><input id="searchInput" placeholder="Search Google or type a command..." autocomplete="off"><kbd>⌘ K</kbd></form>
 
 <section class="network-grid">
- <article class="glass router" data-router="1">
-  <div class="card-head"><h2>📶 Router 1 · <span id="r1name">Home 4G</span></h2><span class="online" id="r1state">● Checking</span></div>
-  <div class="router-main"><div><div class="signal bars" id="r1signal" role="img" aria-label="Signal strength unavailable"><span class="dim" aria-hidden="true">▂</span><span class="dim" aria-hidden="true">▄</span><span class="dim" aria-hidden="true">▆</span><span class="dim" aria-hidden="true">█</span></div><b id="r1quality">--</b><small>Signal Strength</small></div><div class="speed"><b>↓ <span id="r1down">--</span></b><b>↑ <span id="r1up">--</span></b></div></div>
-  <div class="stats"><span><b id="r1devices">--</b>Devices</span><span><b id="r1ping">--</b>Ping</span><span><b id="r1ip">192.168.8.1</b>IP Address</span><span><b id="r1uptime">--</b>Uptime</span></div>
-  <div class="router-live-meta">
-    <span id="r1updated">Waiting for first refresh…</span><span>Router session: <b id="r1sessionstatus">Starting…</b></span>
-    <span>ISP <b id="r1operator">--</b> · PLMN <b id="r1plmn">--</b></span>
-    <div class="signal-metrics">
-      <span><b id="r1rsrp">--</b><small>RSRP</small></span>
-      <span><b id="r1rsrq">--</b><small>RSRQ</small></span>
-      <span><b id="r1sinr">--</b><small>SINR</small></span>
-      <span><b id="r1rssi">--</b><small>RSSI</small></span>
+ <article class="glass router router-one" data-router="1">
+  <div class="card-head router1-header"><h2>📶 Router 1 · <span id="r1name">Home 4G</span></h2><span class="online" id="r1state">● Checking</span></div>
+
+  <div class="router1-live-summary">
+   <section class="router1-signal-panel" aria-label="Router 1 signal">
+    <div class="router1-section-label">Signal</div>
+    <div class="router1-signal-row">
+     <div class="signal bars" id="r1signal" role="img" aria-label="Signal strength unavailable"><span class="dim" aria-hidden="true"></span><span class="dim" aria-hidden="true"></span><span class="dim" aria-hidden="true"></span><span class="dim" aria-hidden="true"></span></div>
+     <div class="router1-signal-rsrp" aria-live="polite"><b id="r1rsrp">--</b><small>RSRP</small></div>
     </div>
-    <div class="cell-metrics">
-      <span>PCI <b id="r1pci">--</b></span>
-      <span>Cell ID <b id="r1cellid">--</b></span>
-      <span>Mode <b id="r1mode">--</b></span>
+   </section>
+   <section class="router1-traffic-panel" aria-label="Router 1 live traffic">
+    <div class="router1-section-label">Live traffic</div>
+    <div class="router1-traffic-grid">
+     <div class="router1-traffic-metric"><span class="router1-traffic-arrow" aria-hidden="true">↓</span><span class="router1-traffic-copy"><small>Download</small><b id="r1down">--</b></span></div>
+     <div class="router1-traffic-metric"><span class="router1-traffic-arrow" aria-hidden="true">↑</span><span class="router1-traffic-copy"><small>Upload</small><b id="r1up">--</b></span></div>
     </div>
-    <details><summary>Live router data</summary>
-      <div id="r1rawsignal">--</div>
-      <div id="r1rawtraffic">--</div>
+   </section>
+  </div>
+
+  <div class="router1-overview" aria-label="Router 1 overview">
+   <div class="router1-stat-card"><span>Devices</span><b id="r1devices">--</b></div>
+   <div class="router1-stat-card"><span>API Latency</span><b id="r1ping">--</b></div>
+   <div class="router1-stat-card"><span>IP Address</span><b id="r1ip">192.168.8.1</b></div>
+   <div class="router1-stat-card"><span>Uptime</span><b id="r1uptime">--</b></div>
+  </div>
+
+  <div class="router-live-meta router1-live-meta">
+   <div class="router1-meta-grid" aria-label="Router 1 metadata">
+    <div class="router1-meta-item"><span>Updated</span><b id="r1updated">--</b></div>
+    <div class="router1-meta-item"><span>Router session</span><b id="r1sessionstatus">Starting…</b></div>
+    <div class="router1-meta-item"><span>ISP</span><b id="r1operator">--</b><small>PLMN <b id="r1plmn">--</b></small></div>
+   </div>
+   <section class="router1-radio-card" aria-label="Router 1 radio details">
+    <div class="router1-section-label">Radio details</div>
+    <div class="router1-metric-grid">
+     <span><b id="r1rsrq">--</b><small>RSRQ</small></span>
+     <span><b id="r1sinr">--</b><small>SINR</small></span>
+     <span><b id="r1rssi">--</b><small>RSSI</small></span>
+    </div>
+    <div class="router1-cell-grid">
+     <span>PCI <b id="r1pci">--</b></span>
+     <span>Cell ID <b id="r1cellid">--</b></span>
+     <span>Mode <b id="r1mode">--</b></span>
+    </div>
+   </section>
+   <div class="router1-raw-stack">
+    <details><summary>Raw router data</summary>
+     <code id="r1rawsignal">--</code>
+     <code id="r1rawtraffic">--</code>
     </details>
+   </div>
   </div>
  </article>
- <article class="glass router" data-router="2">
-  <div class="card-head"><h2>📡 Router 2 · <span id="r2name">Backup 4G</span></h2><span class="online" id="r2state">● Checking</span></div>
-  <div class="router-main"><div><div class="signal" id="r2signal">▂▄▆█</div><b id="r2quality">--</b><small>Signal Strength</small></div><div class="speed"><b>↓ <span id="r2down">--</span></b><b>↑ <span id="r2up">--</span></b></div></div>
-  <div class="stats"><span><b id="r2devices">--</b>Devices</span><span><b id="r2ping">--</b>Ping</span><span><b id="r2ip">192.168.1.1</b>IP Address</span><span><b id="r2uptime">--</b>Uptime</span></div>
+ <article class="glass router router-two" data-router="2">
+  <div class="card-head router2-header"><h2>📡 Router 2 · <span id="r2name">Dialog ZLT P11</span></h2><span class="online" id="r2state">● Checking</span></div>
+
+  <div class="router2-live-summary">
+   <section class="router2-signal-panel" aria-label="Router 2 signal">
+    <div class="router2-section-label">Signal</div>
+     <div class="router2-signal-row">
+     <div class="signal bars" id="r2signal" role="img" aria-label="Signal strength unavailable"><span class="dim" aria-hidden="true"></span><span class="dim" aria-hidden="true"></span><span class="dim" aria-hidden="true"></span><span class="dim" aria-hidden="true"></span></div>
+     <div class="router2-signal-rsrp" aria-live="polite"><b id="r2rsrp">--</b><small>RSRP</small></div>
+    </div>
+   </section>
+   <section class="router2-traffic-panel" aria-label="Router 2 live traffic">
+    <div class="router2-section-label">Live traffic</div>
+    <div class="router2-traffic-grid">
+     <div class="router2-traffic-metric"><span class="router2-traffic-arrow" aria-hidden="true">↓</span><span class="router2-traffic-copy"><small>Download</small><b id="r2down">--</b></span></div>
+     <div class="router2-traffic-metric"><span class="router2-traffic-arrow" aria-hidden="true">↑</span><span class="router2-traffic-copy"><small>Upload</small><b id="r2up">--</b></span></div>
+    </div>
+   </section>
+  </div>
+
+  <div class="router2-overview" aria-label="Router 2 overview">
+   <div class="router2-stat-card"><span>Devices</span><b id="r2devices">--</b></div>
+   <div class="router2-stat-card"><span>API Latency</span><b id="r2ping">--</b></div>
+   <div class="router2-stat-card"><span>IP Address</span><b id="r2ip">--</b></div>
+   <div class="router2-stat-card"><span>Uptime</span><b id="r2uptime">--</b></div>
+  </div>
+
+  <div class="router-live-meta router2-live-meta">
+   <div class="router2-meta-grid" aria-label="Router 2 metadata">
+    <div class="router2-meta-item"><span>Updated</span><b id="r2updated">Waiting for first refresh…</b></div>
+    <div class="router2-meta-item"><span>Router session</span><b id="r2sessionstatus">--</b></div>
+    <div class="router2-meta-item"><span>Operator</span><b id="r2operator">--</b><small>PLMN <b id="r2plmn">--</b></small></div>
+   </div>
+   <section class="router2-radio-card" aria-label="Router 2 radio details">
+    <div class="router2-section-label">Cell ID</div>
+    <div class="router2-cell-id"><b id="r2cellid">--</b></div>
+   </section>
+   <div class="router2-raw-stack">
+    <details><summary>Raw router data</summary>
+     <code id="r2rawdata">--</code>
+    </details>
+    <details id="router2DiagnosticsDetails">
+     <summary>Router 2 diagnostics</summary>
+     <div class="router2-diagnostics-actions">
+      <button type="button" id="router2CopyDiagnostics">Copy diagnostics</button>
+      <span class="muted" id="router2DiagnosticsStatus" role="status" aria-live="polite"></span>
+     </div>
+     <pre id="router2Diagnostics" class="router2-diagnostics" tabindex="0">Waiting for Router 2 diagnostics…</pre>
+    </details>
+   </div>
+  </div>
  </article>
  <article class="glass internet">
   <div class="card-head"><h2>🌐 Internet Status</h2><span class="pill" id="internetState">Checking</span></div>
@@ -64,7 +141,7 @@
   <a href="http://localhost:3000">⌁<span>localhost</span></a><a href="https://nextjs.org">N<span>Next.js</span></a><a href="https://expo.dev">△<span>Expo</span></a><a href="https://www.postgresql.org">🐘<span>PostgreSQL</span></a>
  </div></article>
  <article class="glass link-card"><h3>🔗 Quick Links</h3><div class="links">
-  <a href="https://youtube.com">▶<span>YouTube</span></a><a href="https://notion.so">N<span>Notion</span></a><a id="router1link" href="http://192.168.8.1">📶<span>Router 1</span></a><a id="router2link" href="http://192.168.1.1">📡<span>Router 2</span></a>
+  <a href="https://youtube.com">▶<span>YouTube</span></a><a href="https://notion.so">N<span>Notion</span></a><a id="router1link" href="http://192.168.8.1">📶<span>Router 1</span></a><a id="router2link" href="http://192.168.8.1">📡<span>Router 2</span></a>
  </div></article>
  <article class="glass link-card"><h3>⬡ Projects</h3><div class="links">
   <a href="#"><span class="project-icon">MS</span><span>Marga Shilpaya</span></a><a href="#"><span class="project-icon">RM</span><span>Router Monitor</span></a><a href="#"><span class="project-icon">TS</span><span>TabSweep</span></a>

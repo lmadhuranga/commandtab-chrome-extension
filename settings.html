@@ -1,21 +1,8 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>CommandTab Settings</title><link rel="stylesheet" href="settings.css"></head>
-<body><main><h1>CommandTab Settings</h1><p>Configure both routers. If your router exposes a JSON status endpoint, enter its path. The included generic adapter understands <code>signalQuality</code>, <code>downloadBps</code>, <code>uploadBps</code>, <code>connectedDevices</code>, <code>pingMs</code> and <code>uptime</code>.</p>
+<body><main><h1>CommandTab Settings</h1><p>Configure both routers. Router 2 uses the Dialog ZLT P11 API when its public login page is detected. Credentials stay on this device; the password is converted to a local MD5 hash before saving.</p>
 <section><h2>Router 1</h2><label>Name<input id="r1name"></label><label>Base URL<input id="r1url" placeholder="http://192.168.8.1"></label><label>Status API path<input id="r1path" placeholder="/api/status"></label></section>
-<section><h2>Router 2</h2><label>Name<input id="r2name"></label><label>Base URL<input id="r2url" placeholder="http://192.168.1.1"></label><label>Status API path<input id="r2path" placeholder="/api/status"></label></section>
+<section><h2>Router 2 · Dialog ZLT P11</h2><label>Name<input id="r2name"></label><label>Base URL<input id="r2url" placeholder="http://192.168.8.1"></label><label>Username<input id="router2Username" autocomplete="username" placeholder="admin"></label><label>Password<input id="router2Password" type="password" autocomplete="current-password" placeholder="Leave blank to keep the saved password"><small class="field-note">Leave blank to preserve the existing local hash. The hash is never displayed and is used only for local router authentication.</small></label></section>
 <div class="actions"><button id="save">Save settings</button><span id="msg"></span></div>
-<h2>Expected JSON example</h2><pre>{
-  "signalQuality": 82,
-  "downloadBps": 624000,
-  "uploadBps": 42000,
-  "connectedDevices": 7,
-  "pingMs": 31,
-  "uptime": "3d 12h"
-}</pre>
-<p class="note">Some router admin pages block browser cross-origin requests or require authentication. In that case the router-specific API/authentication flow needs to be added to the extension.</p>
-</main><script src="settings.js"></script>
-      <div class="field session-field">
-<label>Router 1 Session</label>
-<small>Automatic: opens the Huawei home endpoint, reads its SessionID cookie, stores it locally, then uses it for Router 1 API requests.</small>
-</div>
-
-</body></html>
+<p class="note">Router 1 keeps its existing Huawei session flow. Router 2 sessions are memory-only and are discarded when the tab closes or the router changes.</p>
+<div class="field session-field"><label>Router 1 Session</label><small>Automatic: opens the Huawei home endpoint, reads its SessionID cookie, stores it locally, then uses it for Router 1 API requests.</small></div>
+</main><script src="md5.js"></script><script src="settings.js"></script></body></html>
