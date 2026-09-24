@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "CommandTab \u2013 Personal Dashboard",
+  "version": "1.6.0",
+  "description": "A personal Chrome new-tab dashboard with Colombo/Dubai clocks, dual-router monitoring, shortcuts, projects, services and focus tasks.",
+  "permissions": [
+    "storage",
+    "cookies"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*",
+    "https://192.168.8.1/*"
+  ],
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "options_page": "settings.html"
+}

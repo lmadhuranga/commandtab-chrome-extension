@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CommandTab</title><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="overlay"></div>
+<main>
+<header>
+  <div><h1 id="greeting">☀ Good Morning</h1><div id="date"></div><p>Small steps every day lead to big results.</p></div>
+  <div class="header-actions"><button id="settingsBtn">⚙ Settings</button><button id="themeBtn">◐ Theme</button><button id="wallpaperBtn">▣ Wallpaper</button></div>
+</header>
+
+<section class="clocks">
+ <div class="glass clock"><div class="clock-title">🇱🇰 <b>Colombo</b><small>Asia/Colombo</small></div><strong id="colomboTime"></strong><span id="colomboDate"></span></div>
+ <div class="glass clock"><div class="clock-title">🇦🇪 <b>Dubai</b><small>Asia/Dubai</small></div><strong id="dubaiTime"></strong><span id="dubaiDate"></span></div>
+</section>
+
+<form id="searchForm" class="search glass"><span>⌕</span><input id="searchInput" placeholder="Search Google or type a command..." autocomplete="off"><kbd>⌘ K</kbd></form>
+
+<section class="network-grid">
+ <article class="glass router" data-router="1">
+  <div class="card-head"><h2>📶 Router 1 · <span id="r1name">Home 4G</span></h2><span class="online" id="r1state">● Checking</span></div>
+  <div class="router-main"><div><div class="signal bars" id="r1signal" role="img" aria-label="Signal strength unavailable"><span class="dim" aria-hidden="true">▂</span><span class="dim" aria-hidden="true">▄</span><span class="dim" aria-hidden="true">▆</span><span class="dim" aria-hidden="true">█</span></div><b id="r1quality">--</b><small>Signal Strength</small></div><div class="speed"><b>↓ <span id="r1down">--</span></b><b>↑ <span id="r1up">--</span></b></div></div>
+  <div class="stats"><span><b id="r1devices">--</b>Devices</span><span><b id="r1ping">--</b>Ping</span><span><b id="r1ip">192.168.8.1</b>IP Address</span><span><b id="r1uptime">--</b>Uptime</span></div>
+  <div class="router-live-meta">
+    <span id="r1updated">Waiting for first refresh…</span><span>Router session: <b id="r1sessionstatus">Starting…</b></span>
+    <span>ISP <b id="r1operator">--</b> · PLMN <b id="r1plmn">--</b></span>
+    <div class="signal-metrics">
+      <span><b id="r1rsrp">--</b><small>RSRP</small></span>
+      <span><b id="r1rsrq">--</b><small>RSRQ</small></span>
+      <span><b id="r1sinr">--</b><small>SINR</small></span>
+      <span><b id="r1rssi">--</b><small>RSSI</small></span>
+    </div>
+    <div class="cell-metrics">
+      <span>PCI <b id="r1pci">--</b></span>
+      <span>Cell ID <b id="r1cellid">--</b></span>
+      <span>Mode <b id="r1mode">--</b></span>
+    </div>
+    <details><summary>Live router data</summary>
+      <div id="r1rawsignal">--</div>
+      <div id="r1rawtraffic">--</div>
+    </details>
+  </div>
+ </article>
+ <article class="glass router" data-router="2">
+  <div class="card-head"><h2>📡 Router 2 · <span id="r2name">Backup 4G</span></h2><span class="online" id="r2state">● Checking</span></div>
+  <div class="router-main"><div><div class="signal" id="r2signal">▂▄▆█</div><b id="r2quality">--</b><small>Signal Strength</small></div><div class="speed"><b>↓ <span id="r2down">--</span></b><b>↑ <span id="r2up">--</span></b></div></div>
+  <div class="stats"><span><b id="r2devices">--</b>Devices</span><span><b id="r2ping">--</b>Ping</span><span><b id="r2ip">192.168.1.1</b>IP Address</span><span><b id="r2uptime">--</b>Uptime</span></div>
+ </article>
+ <article class="glass internet">
+  <div class="card-head"><h2>🌐 Internet Status</h2><span class="pill" id="internetState">Checking</span></div>
+  <div class="gauge">⌄</div><div class="internet-stats"><span><b id="internetDown">--</b>Download</span><span><b id="internetPing">--</b>Ping</span><span><b id="internetUp">--</b>Upload</span></div>
+  <button class="test-btn" id="testBtn">Run connectivity test</button>
+ </article>
+</section>
+
+<section class="links-grid">
+ <article class="glass link-card"><h3>💼 Work</h3><div class="links">
+  <a href="https://mail.google.com">✉<span>Gmail</span></a><a href="https://chatgpt.com">◎<span>ChatGPT</span></a><a href="https://github.com">◉<span>GitHub</span></a><a href="https://linkedin.com">in<span>LinkedIn</span></a>
+ </div></article>
+ <article class="glass link-card"><h3>⌘ Development</h3><div class="links">
+  <a href="http://localhost:3000">⌁<span>localhost</span></a><a href="https://nextjs.org">N<span>Next.js</span></a><a href="https://expo.dev">△<span>Expo</span></a><a href="https://www.postgresql.org">🐘<span>PostgreSQL</span></a>
+ </div></article>
+ <article class="glass link-card"><h3>🔗 Quick Links</h3><div class="links">
+  <a href="https://youtube.com">▶<span>YouTube</span></a><a href="https://notion.so">N<span>Notion</span></a><a id="router1link" href="http://192.168.8.1">📶<span>Router 1</span></a><a id="router2link" href="http://192.168.1.1">📡<span>Router 2</span></a>
+ </div></article>
+ <article class="glass link-card"><h3>⬡ Projects</h3><div class="links">
+  <a href="#"><span class="project-icon">MS</span><span>Marga Shilpaya</span></a><a href="#"><span class="project-icon">RM</span><span>Router Monitor</span></a><a href="#"><span class="project-icon">TS</span><span>TabSweep</span></a>
+ </div></article>
+</section>
+
+<section class="bottom-grid">
+ <article class="glass"><h3>▣ Developer Services</h3><div id="services"></div></article>
+ <article class="glass"><h3>◉ Recent Devices</h3><p class="muted">Configure router API adapters in Settings to populate device information.</p></article>
+ <article class="glass focus"><h3>◎ Today's Focus <button id="addTask">＋</button></h3><div id="tasks"></div></article>
+</section>
+</main>
+<script src="newtab.js"></script>
+</body></html>
