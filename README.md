@@ -53,7 +53,7 @@ A browser extension cannot reliably read total macOS network throughput by itsel
 
 ## Router 1 live integration (v1.6)
 
-Router 1 is preconfigured for `https://192.168.8.1`.
+Router 1 is preconfigured for `http://192.168.8.1`.
 
 Polling policy:
 - Signal: every 2 seconds
@@ -68,12 +68,12 @@ Endpoints:
 Huawei's `CurrentDownloadRate` and `CurrentUploadRate` values are treated as bytes per second and displayed directly as B/s, KB/s, or MB/s. They are not multiplied by 8 because the dashboard displays byte rates.
 
 ### HTTPS certificate note
-Many local routers use a self-signed HTTPS certificate. Visit `https://192.168.8.1` directly in Chrome and accept/trust the router certificate first if Chrome blocks extension requests. The API may also require an active authenticated router session.
+The configured Router 1 URL in Settings controls the Huawei API protocol. HTTP is the default because the observed HTTPS endpoint fails Chrome certificate validation; HTTPS remains available by setting Router 1 to `https://192.168.8.1` after trusting the router certificate in Chrome. CommandTab does not bypass certificate validation. It continues to bootstrap the router session and read its `SessionID` cookie.
 
 
 ## Live refresh correction
 
-Router 1 now uses one controlled polling loop. Signal and traffic requests run immediately and then again 2 seconds after the previous cycle completes. Requests use the exact Huawei API paths without cache-busting query parameters; cache control is handled through the request cache settings and headers. PLMN/operator is fetched once per new-tab session.
+Router 1 starts signal and traffic requests immediately, then polls signal every 10 seconds and traffic every 2 seconds after each request completes. Each stream is serialized independently so a slow request cannot overlap its next poll. Requests use the exact Huawei API paths without cache-busting query parameters; cache control is handled through the request cache settings and headers. PLMN/operator is fetched once per new-tab session.
 
 The Router 1 card includes a compact update time and expandable raw signal/traffic responses to make live polling easy to verify.
 
@@ -93,7 +93,7 @@ Displayed LTE metrics:
 - Cell ID
 - mode
 
-Signal and traffic are refreshed every 2 seconds. Operator/PLMN is requested once when the new-tab dashboard opens.
+Signal is refreshed every 10 seconds and traffic every 2 seconds. Operator/PLMN is requested once when the new-tab dashboard opens.
 
 
 ## Router 1 session bootstrap

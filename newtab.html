@@ -20,7 +20,7 @@
 <form id="searchForm" class="search glass"><span>⌕</span><input id="searchInput" placeholder="Search Google or type a command..." autocomplete="off"><kbd>⌘ K</kbd></form>
 
 <section class="network-grid">
- <article class="glass router router-one" data-router="1">
+ <article class="glass router router-one" data-router="1" hidden>
   <div class="card-head router1-header"><h2>📶 Router 1 · <span id="r1name">Home 4G</span></h2><span class="online" id="r1state">● Checking</span></div>
 
   <div class="router1-live-summary">
@@ -74,7 +74,7 @@
    </div>
   </div>
  </article>
- <article class="glass router router-two" data-router="2">
+ <article class="glass router router-two" data-router="2" hidden>
   <div class="card-head router2-header"><h2>📡 Router 2 · <span id="r2name">Dialog ZLT P11</span></h2><span class="online" id="r2state">● Checking</span></div>
 
   <div class="router2-live-summary">
@@ -127,9 +127,17 @@
   </div>
  </article>
  <article class="glass internet">
-  <div class="card-head"><h2>🌐 Internet Status</h2><span class="pill" id="internetState">Checking</span></div>
-  <div class="gauge">⌄</div><div class="internet-stats"><span><b id="internetDown">--</b>Download</span><span><b id="internetPing">--</b>Ping</span><span><b id="internetUp">--</b>Upload</span></div>
-  <button class="test-btn" id="testBtn">Run connectivity test</button>
+  <div class="card-head"><h2>🌐 Internet Status</h2><span class="pill" id="internetState" role="status" aria-live="polite">Checking</span></div>
+  <div class="gauge">⌄</div><div class="internet-stats"><span><b id="internetDown">--</b>Download</span><span><b id="internetPing">--</b>HTTP latency</span><span><b id="internetUp">--</b>Upload</span></div>
+  <button class="test-btn" id="testBtn" type="button">Test connectivity</button>
+  <div class="connectivity-details" aria-label="Connectivity test details">
+   <div class="connectivity-destination">Google destination: <strong>HTTPS (www.google.com/generate_204)</strong> · 5 HTTP attempts · max 3 s each</div>
+   <ol id="googleAttempts" class="connectivity-attempts" aria-label="Google HTTP attempt results" aria-live="polite"></ol>
+   <p id="googleSummary" class="connectivity-summary" role="status" aria-live="polite">Run the test to check Google HTTP response latency. This is not ICMP ping.</p>
+   <div class="connectivity-destination">Cloudflare destination: <strong>HTTPS (www.cloudflare.com/cdn-cgi/trace)</strong> · 5 HTTP attempts · max 3 s each</div>
+   <ol id="cloudflareAttempts" class="connectivity-attempts" aria-label="Cloudflare HTTP attempt results" aria-live="polite"></ol>
+   <p id="cloudflareSummary" class="connectivity-summary" role="status" aria-live="polite">Run the test to check Cloudflare HTTP response latency. This is not ICMP ping.</p>
+  </div>
  </article>
 </section>
 
