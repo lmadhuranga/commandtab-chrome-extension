@@ -37,6 +37,7 @@ const defaults={
 const ROUTER2_DEFAULT_BASE='http://192.168.8.1';
 const ROUTER2_LEGACY_DEFAULT_BASE='http://192.168.1.1';
 const ROUTER2_API_PATH='/cgi-bin/http.cgi';
+const ROUTER1_DEFAULT_BASE='http://192.168.8.1';
 const ROUTER2_DEFAULT_USERNAME='admin';
 // Dialog ZLT P11 ships with the built-in credentials. Keep only the router-compatible hash in memory.
 const ROUTER2_DEFAULT_PASSWORD_HASH='21232f297a57a5a743894a0e4a801fc3';
@@ -48,6 +49,15 @@ function normalizeRouter2Origin(value){
   if(!['http:','https:'].includes(url.protocol)||!url.hostname)return ROUTER2_DEFAULT_BASE;
   return `${url.protocol}//${url.host}`;
  }catch{return ROUTER2_DEFAULT_BASE}
+}
+
+function normalizeRouter1Origin(value){
+ try{
+  const input=String(value||ROUTER1_DEFAULT_BASE).trim();
+  const url=new URL(/^https?:\/\//i.test(input)?input:`http://${input}`);
+  if(!['http:','https:'].includes(url.protocol)||!url.hostname)return ROUTER1_DEFAULT_BASE;
+  return `${url.protocol}//${url.host}`;
+ }catch{return ROUTER1_DEFAULT_BASE}
 }
 
 function resolveRouter2Credentials(values={}){
@@ -77,6 +87,7 @@ async function load(){
  const migration=migrateRouterDefaults(storedRouters);
  const routers=migration.routers;
  if(migration.changed)await chrome.storage.local.set({routers});
+ router1Origin=normalizeRouter1Origin(routers[0]?.baseUrl||ROUTER1_DEFAULT_BASE);
  router2Origin=normalizeRouter2Origin(routers[1]?.baseUrl||ROUTER2_DEFAULT_BASE);
  const resolvedCredentials=resolveRouter2Credentials(s);
  router2Credentials.username=resolvedCredentials.username;
@@ -88,6 +99,7 @@ async function load(){
    $('#r'+n+'name').textContent=r.name;
    $('#r'+n+'ip').textContent=new URL(r.baseUrl).hostname;
    $('#router'+n+'link').href=r.baseUrl;
+   if(n===1)setRouterText('r1ip',new URL(r.baseUrl).hostname);
    if(n===2) setRouter2IdleState(); // Router 2 starts only after the public ZLT detector confirms its firmware.
  });
  renderServices(s.services||defaults.services);
@@ -122,15 +134,88 @@ function formatRate(b){if(b==null)return '--';return b>=1e6?(b/1e6).toFixed(1)+'
 async function pingUrl(url){
  const start=performance.now();try{await timedFetch(url,1800);return Math.round(performance.now()-start)}catch{return null}
 }
-$('#testBtn').onclick=async()=>{
- $('#internetState').textContent='Testing…';
- const p=await pingUrl('https://www.google.com/generate_204');
- $('#internetPing').textContent=p==null?'Offline':p+' ms';
- $('#internetState').textContent=p==null?'Offline':p<100?'Excellent':p<250?'Good':'Slow';
- // Browsers cannot accurately measure OS-wide throughput without a helper/native app.
- $('#internetDown').textContent='Router API';
- $('#internetUp').textContent='Router API';
-};
+const CONNECTIVITY_ATTEMPTS=5;
+const CONNECTIVITY_TIMEOUT_MS=3000;
+const CONNECTIVITY_PROBES=[
+ {name:'Google',url:'https://www.google.com/generate_204',expectedStatus:204,attempts:'#googleAttempts',summary:'#googleSummary'},
+ {name:'Cloudflare',url:'https://www.cloudflare.com/cdn-cgi/trace',expectedStatus:200,attempts:'#cloudflareAttempts',summary:'#cloudflareSummary'}
+];
+function summarizeConnectivityResults(results){
+ const successful=results.filter(result=>result.latencyMs!==null);
+ const latencies=successful.map(result=>result.latencyMs).sort((a,b)=>a-b);
+ const average=latencies.length?Math.round(latencies.reduce((sum,value)=>sum+value,0)/latencies.length):null;
+ return {successes:successful.length,failures:results.length-successful.length,average,min:latencies[0]??null,max:latencies.at(-1)??null};
+}
+async function runConnectivityTest(event){
+ const button=event.currentTarget;
+ const state=$('#internetState');
+ const latency=$('#internetPing');
+ if(button.disabled)return;
+ button.disabled=true;
+ button.setAttribute('aria-busy','true');
+ button.textContent='Testing…';
+ state.textContent='Testing…';
+ latency.textContent='--';
+ try{
+  for(const probe of CONNECTIVITY_PROBES){
+   const attemptsList=$(probe.attempts);
+   const summary=$(probe.summary);
+   attemptsList.replaceChildren();
+   summary.textContent=`Running ${CONNECTIVITY_ATTEMPTS} sequential HTTP attempts to ${probe.name}…`;
+   const results=[];
+   for(let index=0;index<CONNECTIVITY_ATTEMPTS;index++){
+    const item=document.createElement('li');
+    item.textContent=`${index+1}: …`;
+    item.setAttribute('aria-label',`Attempt ${index+1} in progress`);
+    attemptsList.append(item);
+    const started=performance.now();
+    try{
+     const response=await timedFetch(probe.url,CONNECTIVITY_TIMEOUT_MS);
+     const elapsed=Math.round(performance.now()-started);
+     if(response.status!==probe.expectedStatus)throw new Error(`HTTP ${response.status}`);
+     results.push({latencyMs:elapsed});
+     item.textContent=`${index+1}: ${elapsed} ms`;
+     item.className='ok';
+     item.setAttribute('aria-label',`Attempt ${index+1}: HTTP ${response.status} in ${elapsed} ms`);
+    }catch(error){
+     const reason=error?.name==='AbortError'?'timeout':/^HTTP \d{3}$/.test(error?.message||'')?error.message:'request failed';
+     results.push({latencyMs:null,reason});
+     item.textContent=`${index+1}: ${reason}`;
+     item.className='bad';
+     item.setAttribute('aria-label',`Attempt ${index+1} failed: ${reason}`);
+    }
+   }
+   const result=summarizeConnectivityResults(results);
+   if(result.successes){
+    const last=results.filter(value=>value.latencyMs!==null).at(-1).latencyMs;
+    if(probe.name==='Google')latency.textContent=`${last} ms`;
+    summary.textContent=`${result.successes}/${CONNECTIVITY_ATTEMPTS} succeeded · HTTP latency avg ${result.average} ms, min ${result.min} ms, max ${result.max} ms · ${result.failures} failed.`;
+   }else{
+    summary.textContent=`0/${CONNECTIVITY_ATTEMPTS} succeeded · all HTTP attempts failed (each bounded to ${CONNECTIVITY_TIMEOUT_MS/1000} seconds). Network and browser CORS restrictions can both cause failures.`;
+   }
+  }
+  const googleResults=$('#googleSummary').textContent;
+  const cloudflareResults=$('#cloudflareSummary').textContent;
+  const googleSuccesses=Number(googleResults.match(/^(\d+)\/5 succeeded/)?.[1]||0);
+  const cloudflareSuccesses=Number(cloudflareResults.match(/^(\d+)\/5 succeeded/)?.[1]||0);
+  const hasSuccess=googleSuccesses+cloudflareSuccesses>0;
+  const allSuccess=googleSuccesses===CONNECTIVITY_ATTEMPTS&&cloudflareSuccesses===CONNECTIVITY_ATTEMPTS;
+  state.textContent=allSuccess?'Online':hasSuccess?'Partial':'Unreachable';
+  state.title='Browser HTTP round-trip latency to Google and Cloudflare; not ICMP ping.';
+ }finally{
+  // Browsers cannot accurately measure OS-wide throughput without a helper/native app.
+  $('#internetDown').textContent='Router API';
+  $('#internetUp').textContent='Router API';
+  button.disabled=false;
+  button.removeAttribute('aria-busy');
+  button.textContent='Test connectivity';
+ }
+}
+$('#testBtn').onclick=runConnectivityTest;
+// The dashboard script is loaded at the end of newtab.html, so this runs once
+// after the connectivity UI exists. The disabled button prevents overlap and
+// becomes available again for manual reruns when the initial test finishes.
+runConnectivityTest({currentTarget:$('#testBtn')});
 async function renderServices(list){
  const el=$('#services');el.innerHTML='';
  for(const s of list){
@@ -257,7 +342,7 @@ async function copyRouter2Diagnostics(){
 
 document.getElementById('router2CopyDiagnostics')?.addEventListener('click',copyRouter2Diagnostics);
 router2DiagnosticRender();
-load();
+load().then(()=>runRouter1Detection());
 
 
 /* ===== Shared 192.168.8.1 detection ===== */
@@ -274,9 +359,14 @@ let router1Mode='unknown';
 let router1DetectionInFlight=false;
 let router1DetectionTimer=null;
 let router1LiveLoopStarted=false;
-let router1LiveLoopRunning=false;
-let router1LiveTimer=null;
+let router1SignalRunning=false;
+let router1TrafficRunning=false;
+let router1SignalTimer=null;
+let router1TrafficTimer=null;
 let router1BootstrapStarted=false;
+let router1ApiHealthy=false;
+let router1ApiAvailabilityFailures=0;
+const ROUTER1_API_FAILURE_THRESHOLD=3;
 
 /* ===== Router 2: Dialog ZLT P11 live integration ===== */
 let router2Origin=ROUTER2_DEFAULT_BASE;
@@ -525,6 +615,28 @@ function router2CancelDetectionPolling(){
  }
 }
 
+function router1CancelDetectionPolling(){
+ if(router1DetectionTimer!==null){
+  clearTimeout(router1DetectionTimer);
+  router1DetectionTimer=null;
+ }
+}
+
+function router1MarkApiHealthy(){
+ router1ApiHealthy=true;
+ router1ApiAvailabilityFailures=0;
+ setRouterCardVisible(1,true);
+ if(router1Mode==='huawei')router1CancelDetectionPolling();
+}
+
+function router1MarkApiUnavailable(){
+ router1ApiHealthy=false;
+ router1ApiAvailabilityFailures+=1;
+ if(router1Mode==='huawei'&&router1ApiAvailabilityFailures>=ROUTER1_API_FAILURE_THRESHOLD){
+  router2ScheduleDetectionAfterApiFailure('Huawei API unavailable');
+ }
+}
+
 function router2MarkApiHealthy(command){
  const wasHealthy=router2ApiHealthy;
  router2ApiHealthy=true;
@@ -533,9 +645,16 @@ function router2MarkApiHealthy(command){
  if(router2ZltDetected&&router2IntegrationStarted)router2CancelDetectionPolling();
 }
 
+function setRouterCardVisible(number,visible){
+ const card=document.querySelector(`.router[data-router="${number}"]`);
+ if(card)card.hidden=!visible;
+}
+
 function router2ScheduleDetectionAfterApiFailure(reason){
- if(!router2ZltDetected||!router2IntegrationStarted||router1DetectionTimer!==null)return;
- router2DiagnosticLog('ZLT detection polling',`scheduled after ${ROUTER2_API_FAILURE_THRESHOLD} API availability failures (${reason})`);
+ const activeZlt=router2ZltDetected&&router2IntegrationStarted;
+ const activeHuawei=router1Mode==='huawei';
+ if((!activeZlt&&!activeHuawei)||router1DetectionTimer!==null)return;
+ router2DiagnosticLog('Router detection polling',`scheduled after API availability failures (${reason})`);
  router1DetectionTimer=setTimeout(()=>{
   router1DetectionTimer=null;
   runRouter1Detection();
@@ -853,6 +972,7 @@ async function detectZltRouter(origin=router2Origin){
   });
   if(response.status!==200){
    router2DiagnosticLog('ZLT detection result',`detected=no; HTTP ${response.status}`,{key:'zlt-detection-result-no',minInterval:10000});
+   if(response.status>=500||response.status===408||response.status===429)return null;
    return false;
   }
   const body=await response.text();
@@ -863,7 +983,7 @@ async function detectZltRouter(origin=router2Origin){
  }catch(error){
   router2DiagnosticState.lastError=router2DiagnosticSafeError(error);
   router2DiagnosticLog('ZLT detection error',router2DiagnosticSafeError(error),{key:`zlt-detection-error-${router2DiagnosticSafeError(error)}`,minInterval:5000});
-  return false;
+  return null;
  }
 }
 
@@ -883,15 +1003,20 @@ function setRouter2DetectedState(){
 }
 
 function pauseRouter1LiveLoop(){
- if(router1LiveTimer!==null){clearTimeout(router1LiveTimer);router1LiveTimer=null}
+ if(router1SignalTimer!==null){clearTimeout(router1SignalTimer);router1SignalTimer=null}
+ if(router1TrafficTimer!==null){clearTimeout(router1TrafficTimer);router1TrafficTimer=null}
 }
 
 async function runRouter1Detection(){
  if(router1DetectionInFlight)return;
  router1DetectionInFlight=true;
+ let detectionResult=null;
  try{
   router2DetectionOrigin=router2Origin;
   const zltDetected=await detectZltRouter(router2DetectionOrigin);
+  detectionResult=zltDetected;
+  // A failed probe is inconclusive. Preserve the current router/card lifecycle.
+  if(zltDetected===null)return;
   const nextDetection=zltDetected?'zlt':'not-zlt';
   if(router2DiagnosticState.detection!==nextDetection){
    const previous=router2DiagnosticState.detection;
@@ -900,6 +1025,8 @@ async function runRouter1Detection(){
   }
   if(zltDetected){
    router2ZltDetected=true;
+   setRouterCardVisible(2,true);
+   setRouterCardVisible(1,false);
    router1Mode='zlt';
    router1BootstrapStarted=false;
    router1PrevTraffic=null;
@@ -910,20 +1037,27 @@ async function runRouter1Detection(){
    const wasZlt=router2ZltDetected;
    router2ZltDetected=false;
    if(wasZlt)stopRouter2Integration();
+   setRouterCardVisible(2,false);
+   if(router1ApiAvailabilityFailures>=ROUTER1_API_FAILURE_THRESHOLD)setRouterCardVisible(1,false);
    setRouter2IdleState();
    if(router1Mode!=='huawei'){
     router1Mode='huawei';
     await startRouter1();
-   }else if(router1LiveLoopStarted&&!router1LiveLoopRunning&&router1LiveTimer===null){
+   }else if(router1LiveLoopStarted&&!router1SignalRunning&&!router1TrafficRunning&&router1SignalTimer===null&&router1TrafficTimer===null){
     startRouter1LiveLoop();
    }
   }
  }finally{
   router1DetectionInFlight=false;
-  if(router2ZltDetected&&router2IntegrationStarted){
+  if(detectionResult===null){
+   if(router1DetectionTimer===null)router1DetectionTimer=setTimeout(()=>{
+    router1DetectionTimer=null;
+    runRouter1Detection();
+   },ROUTER1_REDETECT_MS);
+  }else if(router2ZltDetected&&router2IntegrationStarted){
    // A healthy CMD endpoint owns liveness after the shared-IP detector succeeds.
    router2CancelDetectionPolling();
-  }else if(router1DetectionTimer===null){
+  }else if(!router1ApiHealthy&&router1DetectionTimer===null){
    router1DetectionTimer=setTimeout(()=>{
     router1DetectionTimer=null;
     runRouter1Detection();
@@ -934,8 +1068,13 @@ async function runRouter1Detection(){
 
 
 /* ===== Router 1: Huawei B310s-927 live integration ===== */
-const ROUTER1_BASE = 'https://192.168.8.1';
+// The B310's HTTPS certificate is self-signed and Chrome correctly rejects it
+// for extension fetches. Use its local HTTP API; never weaken TLS validation.
+// Settings controls this origin; HTTP is the default because Chrome rejects
+// the router's observed HTTPS certificate. HTTPS remains selectable in Settings.
+let router1Origin = ROUTER1_DEFAULT_BASE;
 const ROUTER1_REFRESH_MS = 2000;
+const ROUTER1_SIGNAL_REFRESH_MS = 10000;
 let router1PrevTraffic = null;
 
 function setRouterText(id, value) {
@@ -961,7 +1100,7 @@ async function router1Text(path, timeoutMs = 1800) {
 
   try {
     const response = await fetch(
-      `${ROUTER1_BASE}${path}`,
+      `${router1Origin}${path}`,
       {
         method: 'GET',
         credentials: 'include',
@@ -974,7 +1113,12 @@ async function router1Text(path, timeoutMs = 1800) {
       }
     );
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return await response.text();
+    const text=await response.text();
+    if(router1Mode==='huawei')router1MarkApiHealthy();
+    return text;
+  } catch(error) {
+    if(router1Mode==='huawei')router1MarkApiUnavailable();
+    throw error;
   } finally {
     clearTimeout(timer);
   }
@@ -1152,64 +1296,75 @@ function updateRouter1Timestamp() {
   setRouterText('r1updated', new Date().toLocaleTimeString());
 }
 
-async function router1LiveCycle() {
- if(router1Mode!=='huawei'){router1LiveTimer=null;return}
- router1LiveLoopRunning=true;
+async function router1LiveSignalCycle() {
+ if(router1Mode!=='huawei'){router1SignalTimer=null;return}
+ if(router1SignalRunning)return;
+ router1SignalRunning=true;
  try {
-    if(router1Mode!=='huawei') return;
-    const results = await Promise.allSettled([
-      refreshRouter1Signal(),
-      refreshRouter1Traffic()
-    ]);
-
-    if (results.some(r => r.status === 'fulfilled')) {
+    if(router1Mode==='huawei'){
+      await refreshRouter1Signal();
       updateRouter1Timestamp();
     }
-
-    if (results.every(r => r.status === 'rejected')) {
-      const state = document.getElementById('r1state');
-      if (state) {
-        state.textContent = '● Refresh error';
-        state.className = 'bad';
-      }
-    }
+  } catch(error) {
+    const state=document.getElementById('r1state');
+    if(state){state.textContent='● Refresh error';state.className='bad'}
   } finally {
-    router1LiveLoopRunning=false;
-    if(router1Mode==='huawei') router1LiveTimer=setTimeout(router1LiveCycle, ROUTER1_REFRESH_MS);
-    else router1LiveTimer=null;
+    router1SignalRunning=false;
+    if(router1Mode==='huawei')router1SignalTimer=setTimeout(router1LiveSignalCycle,ROUTER1_SIGNAL_REFRESH_MS);
+    else router1SignalTimer=null;
+  }
+}
+
+async function router1LiveTrafficCycle() {
+ if(router1Mode!=='huawei'){router1TrafficTimer=null;return}
+ if(router1TrafficRunning)return;
+ router1TrafficRunning=true;
+ try {
+    if(router1Mode==='huawei'){
+      await refreshRouter1Traffic();
+      updateRouter1Timestamp();
+    }
+  } catch(error) {
+    const state=document.getElementById('r1state');
+    if(state){state.textContent='● Refresh error';state.className='bad'}
+  } finally {
+    router1TrafficRunning=false;
+    if(router1Mode==='huawei')router1TrafficTimer=setTimeout(router1LiveTrafficCycle,ROUTER1_REFRESH_MS);
+    else router1TrafficTimer=null;
   }
 }
 
 function startRouter1LiveLoop(){
- if(router1Mode!=='huawei'||router1LiveLoopRunning||router1LiveTimer!==null)return;
+ if(router1Mode!=='huawei'||router1SignalRunning||router1TrafficRunning||router1SignalTimer!==null||router1TrafficTimer!==null)return;
  router1LiveLoopStarted=true;
- router1LiveCycle();
+ // Kick both requests off immediately, then let each own its independent cadence.
+ router1LiveSignalCycle();
+ router1LiveTrafficCycle();
 }
 
-/* ===== Huawei B310s-927 automatic session bootstrap ===== */
-const ROUTER1_HOME_URL = 'https://192.168.8.1/html/home.html';
+/* ===== Huawei B310s-927 browser-managed session bootstrap ===== */
+function router1HomeUrl(){return `${router1Origin}/html/home.html`}
 
 async function getRouter1SessionCookie() {
-  return chrome.cookies.get({url: ROUTER1_BASE + '/', name: 'SessionID'});
+  return chrome.cookies.get({url: router1Origin + '/', name: 'SessionID'});
 }
 
 async function bootstrapRouter1Session() {
   setRouterText('r1sessionstatus', 'Getting session…');
   try {
-    const res = await fetch(`${ROUTER1_HOME_URL}?_=${Date.now()}`, {
+    const res = await fetch(`${router1HomeUrl()}?_=${Date.now()}`, {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
       redirect: 'follow'
     });
     await res.text();
-
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const cookie = await getRouter1SessionCookie();
     if (!cookie || !cookie.value) {
       setRouterText('r1sessionstatus', 'No SessionID');
       return false;
     }
-
     await chrome.storage.local.set({
       router1SessionId: cookie.value,
       router1SessionUpdatedAt: Date.now()
@@ -1234,6 +1389,10 @@ async function startRouter1() {
 
 chrome.storage?.onChanged?.addListener((changes,area)=>{
  if(area!=='local')return;
+ if(changes.routers?.newValue?.[0]?.baseUrl){
+  const nextOrigin=normalizeRouter1Origin(changes.routers.newValue[0].baseUrl);
+  if(nextOrigin!==router1Origin){router1Origin=nextOrigin;router1BootstrapStarted=false;if(router1Mode==='huawei')startRouter1()}
+ }
  if(changes.router2Username)router2Credentials.username=String(changes.router2Username.newValue||ROUTER2_DEFAULT_USERNAME).trim()||ROUTER2_DEFAULT_USERNAME;
  if(changes.router2PasswordHash)router2Credentials.passwordHash=typeof changes.router2PasswordHash.newValue==='string'&&changes.router2PasswordHash.newValue.trim()?changes.router2PasswordHash.newValue.trim():ROUTER2_DEFAULT_PASSWORD_HASH;
  if(changes.router2Username||changes.router2PasswordHash)router2CredentialSource=(changes.router2PasswordHash?.newValue||changes.router2Username?.newValue)?'saved settings':'built-in default';
@@ -1248,4 +1407,3 @@ chrome.storage?.onChanged?.addListener((changes,area)=>{
  }
 });
 router2DiagnosticLog('Extension loaded','Router 2 diagnostics ready; sensitive values are omitted');
-runRouter1Detection();

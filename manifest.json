@@ -9,8 +9,7 @@
   ],
   "host_permissions": [
     "http://*/*",
-    "https://*/*",
-    "https://192.168.8.1/*"
+    "https://*/*"
   ],
   "chrome_url_overrides": {
     "newtab": "newtab.html"

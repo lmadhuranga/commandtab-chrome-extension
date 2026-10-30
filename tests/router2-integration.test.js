@@ -11,6 +11,54 @@ const styles = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 const settings = fs.readFileSync(path.join(root, 'settings.js'), 'utf8');
 const settingsHtml = fs.readFileSync(path.join(root, 'settings.html'), 'utf8');
 
+test('Dashboard connectivity test shows five bounded, sequential Google and Cloudflare HTTP attempts', () => {
+  assert.equal((newtabHtml.match(/id="testBtn"/g) || []).length, 1);
+  assert.match(newtabHtml, /id="internetPing">--<\/b>HTTP latency/);
+  assert.match(newtabHtml, /Google destination: <strong>HTTPS \(www\.google\.com\/generate_204\)<\/strong> · 5 HTTP attempts · max 3 s each/);
+  assert.match(newtabHtml, /Cloudflare destination: <strong>HTTPS \(www\.cloudflare\.com\/cdn-cgi\/trace\)<\/strong> · 5 HTTP attempts · max 3 s each/);
+  for (const id of ['googleAttempts', 'googleSummary', 'cloudflareAttempts', 'cloudflareSummary']) assert.match(newtabHtml, new RegExp(`id="${id}"`));
+  assert.match(newtab, /const CONNECTIVITY_ATTEMPTS=5/);
+  assert.match(newtab, /const CONNECTIVITY_TIMEOUT_MS=3000/);
+  assert.match(newtab, /url:'https:\/\/www\.google\.com\/generate_204',expectedStatus:204/);
+  assert.match(newtab, /url:'https:\/\/www\.cloudflare\.com\/cdn-cgi\/trace',expectedStatus:200/);
+  assert.match(newtab, /for\(const probe of CONNECTIVITY_PROBES\)/);
+  assert.match(newtab, /for\(let index=0;index<CONNECTIVITY_ATTEMPTS;index\+\+\)/);
+  assert.match(newtab, /await timedFetch\(probe\.url,CONNECTIVITY_TIMEOUT_MS\)/);
+  assert.match(newtab, /response\.status!==probe\.expectedStatus/);
+  assert.match(newtab, /error\?\.name==='AbortError'\?'timeout'/);
+  assert.match(newtab, /if\(button\.disabled\)return/);
+  assert.match(newtab, /async function runConnectivityTest\(event\)/);
+  assert.match(newtab, /\$\('#testBtn'\)\.onclick=runConnectivityTest/);
+  assert.match(newtab, /runConnectivityTest\(\{currentTarget:\$\('#testBtn'\)\}\)/);
+  assert.match(newtab, /HTTP latency avg \$\{result\.average\} ms, min \$\{result\.min\} ms, max \$\{result\.max\} ms/);
+  assert.match(newtab, /not ICMP ping/);
+});
+
+test('Connectivity summary computes success count, packet loss, and latency range', () => {
+  const source = newtab.match(/function summarizeConnectivityResults\(results\)\{[\s\S]*?\n\}/)?.[0];
+  assert.ok(source, 'connectivity summary helper should exist');
+  const summarize = vm.runInNewContext(`${source}; summarizeConnectivityResults`);
+  assert.deepEqual(JSON.parse(JSON.stringify(summarize([
+    {latencyMs: 20}, {latencyMs: null, reason: 'timeout'}, {latencyMs: 50}, {latencyMs: 30}
+  ]))), {successes: 3, failures: 1, average: 33, min: 20, max: 50});
+  assert.deepEqual(JSON.parse(JSON.stringify(summarize([{latencyMs: null}, {latencyMs: null}]))), {
+    successes: 0, failures: 2, average: null, min: null, max: null
+  });
+});
+
+test('Huawei B310 API honors the configured protocol and keeps certificate validation intact', () => {
+  assert.match(newtab, /const ROUTER1_DEFAULT_BASE='http:\/\/192\.168\.8\.1'/);
+  assert.match(newtab, /router1Origin=normalizeRouter1Origin\(routers\[0\]\?\.baseUrl\|\|ROUTER1_DEFAULT_BASE\)/);
+  assert.match(newtab, /function normalizeRouter1Origin\(value\)/);
+  assert.match(newtab, /https\?:\\\/\\\//);
+  assert.match(newtab, /credentials: 'include'/);
+  assert.match(newtab, /chrome\.cookies\.get\(\{url: router1Origin \+ '\/', name: 'SessionID'\}\)/);
+  assert.match(newtab, /router1SessionId: cookie\.value/);
+  assert.doesNotMatch(newtab, /rejectUnauthorized|ignore-certificate-errors|disable-web-security/);
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
+  assert.ok(manifest.permissions.includes('cookies'));
+});
+
 test('Router 2 API uses the audited POST endpoint and browser headers', () => {
   assert.match(newtab, /ROUTER2_API_PATH=['"]\/cgi-bin\/http\.cgi/);
   assert.match(newtab, /method:'POST'/);
@@ -80,6 +128,78 @@ test('Healthy Router 2 API owns liveness after shared-IP detection', () => {
   assert.match(newtab, /router2ScheduleDetectionAfterApiFailure\(/);
   assert.match(newtab, /failure \$\{router2ApiAvailabilityFailures\}\/\$\{ROUTER2_API_FAILURE_THRESHOLD\}/);
   assert.match(newtab, /status!==401&&response\.status!==403/);
+});
+
+test('Healthy Huawei API pauses login-page probes and API failures recheck the router type', () => {
+  assert.match(newtab, /load\(\)\.then\(\(\)=>runRouter1Detection\(\)\)/);
+  assert.doesNotMatch(newtab, /router2DiagnosticLog\('Extension loaded',[\s\S]*?runRouter1Detection\(\);/);
+  assert.match(newtab, /const ROUTER1_API_FAILURE_THRESHOLD=3/);
+  assert.match(newtab, /function router1MarkApiHealthy\(\)[\s\S]*?if\(router1Mode==='huawei'\)router1CancelDetectionPolling\(\)/);
+  assert.match(newtab, /function router1MarkApiUnavailable\(\)[\s\S]*?router2ScheduleDetectionAfterApiFailure\('Huawei API unavailable'\)/);
+  assert.match(newtab, /if\(\(!activeZlt&&!activeHuawei\)\|\|router1DetectionTimer!==null\)return/);
+  assert.match(newtab, /if\(router1Mode==='huawei'\)router1MarkApiHealthy\(\)/);
+  assert.match(newtab, /if\(router1Mode==='huawei'\)router1MarkApiUnavailable\(\)/);
+  assert.match(newtab, /\}else if\(!router1ApiHealthy&&router1DetectionTimer===null\)\{/);
+  assert.match(newtab, /runRouter1Detection\(\);/);
+});
+
+test('Router cards start hidden, show on positive detection, and retain state during probe errors', () => {
+  assert.match(newtabHtml, /class="glass router router-one" data-router="1" hidden/);
+  assert.match(newtabHtml, /class="glass router router-two" data-router="2" hidden/);
+  assert.match(styles, /\.router\[hidden\]\{display:none!important\}/);
+  assert.match(newtab, /function router1MarkApiHealthy\(\)[\s\S]*?setRouterCardVisible\(1,true\)/);
+  assert.match(newtab, /if\(zltDetected\)\{[\s\S]*?setRouterCardVisible\(2,true\);\s*setRouterCardVisible\(1,false\)/);
+  assert.match(newtab, /if\(detectionResult===null\)\{[\s\S]*?runRouter1Detection\(\)/);
+  assert.match(newtab, /if\(zltDetected===null\)return/);
+
+  const helper = newtab.match(/function setRouterCardVisible\(number,visible\)\{[\s\S]*?\n\}/)?.[0];
+  assert.ok(helper, 'card visibility helper should exist');
+  const cards = new Map([
+    ['.router[data-router="1"]', {hidden: true}],
+    ['.router[data-router="2"]', {hidden: true}]
+  ]);
+  const update = vm.runInNewContext(`${helper}; setRouterCardVisible`, {
+    document: {querySelector: selector => cards.get(selector)}
+  });
+  update(1, true);
+  update(2, true);
+  assert.equal(cards.get('.router[data-router="1"]').hidden, false);
+  assert.equal(cards.get('.router[data-router="2"]').hidden, false);
+  update(1, false);
+  update(2, false);
+  assert.equal(cards.get('.router[data-router="1"]').hidden, true);
+  assert.equal(cards.get('.router[data-router="2"]').hidden, true);
+});
+
+test('Huawei signal and traffic poll immediately on independent non-overlapping cadences', async () => {
+  const pollingSource = newtab.match(/async function router1LiveSignalCycle\(\)[\s\S]*?function startRouter1LiveLoop\(\)\{[\s\S]*?\n\}/)?.[0];
+  assert.ok(pollingSource, 'Huawei polling loops should remain explicit');
+  const timers = [];
+  let signalCalls = 0;
+  let trafficCalls = 0;
+  let resolveSignal;
+  let resolveTraffic;
+  const context = {
+    refreshRouter1Signal: () => { signalCalls++; return new Promise(resolve => { resolveSignal = resolve; }); },
+    refreshRouter1Traffic: () => { trafficCalls++; return new Promise(resolve => { resolveTraffic = resolve; }); },
+    updateRouter1Timestamp() {},
+    document: { getElementById: () => ({}) },
+    setTimeout(callback, delay) { timers.push({ callback, delay }); return timers.length; },
+    clearTimeout() {}
+  };
+  const api = vm.runInNewContext(`const ROUTER1_REFRESH_MS=2000,ROUTER1_SIGNAL_REFRESH_MS=10000; let router1Mode='huawei',router1LiveLoopStarted=false,router1SignalRunning=false,router1TrafficRunning=false,router1SignalTimer=null,router1TrafficTimer=null; ${pollingSource}; ({startRouter1LiveLoop,router1LiveSignalCycle,router1LiveTrafficCycle})`, context);
+
+  api.startRouter1LiveLoop();
+  assert.equal(signalCalls, 1, 'signal should fetch immediately');
+  assert.equal(trafficCalls, 1, 'traffic should fetch immediately');
+  await Promise.all([api.router1LiveSignalCycle(), api.router1LiveTrafficCycle()]);
+  assert.equal(signalCalls, 1, 'a pending signal request must not overlap');
+  assert.equal(trafficCalls, 1, 'a pending traffic request must not overlap');
+
+  resolveSignal();
+  resolveTraffic();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(timers.map(timer => timer.delay).sort((a, b) => a - b), [2000, 10000]);
 });
 
 test('Router 2 command cadence and concurrency guards are explicit', () => {
